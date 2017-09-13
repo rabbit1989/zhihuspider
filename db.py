@@ -17,7 +17,12 @@ class DBConnection:
 		self.cursor = self.db.cursor()
 
 	def execute(self, sql, param_list):
-		self.cursor.executemany(sql, param_list)
-
+		if len(param_list) >= 1:
+			self.cursor.executemany(sql, param_list)
+		else:
+			self.cursor.execute(sql)
+	def fetch_results(self):
+		return self.cursor.fetchall()
+		
 	def close(self):
 		self.db.close()

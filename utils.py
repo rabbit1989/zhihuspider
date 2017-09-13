@@ -1,6 +1,5 @@
 #coding=utf-8
 from datetime import datetime
-import ConfigParser
 import logging
 import sys
 import time
@@ -12,13 +11,11 @@ from bs4 import BeautifulSoup
 def get_sql_time():
 	return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-def init_logger():
-	cf = ConfigParser.ConfigParser()
-	cf.read("config.ini")
+def init_logger(log_path):
 	logging.basicConfig(level=logging.INFO, 
 			format = '%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
 			datefmt='%A, %Y-%m-%d %H:%M:%S', 
-			filename= cf.get('log', 'file_name'), 
+			filename= log_path, 
 			filemode = 'w')
 	console = logging.StreamHandler()
 	console.setLevel(logging.INFO)
