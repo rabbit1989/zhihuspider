@@ -1,0 +1,61 @@
+Wednesday, 2017-09-13 10:53:09 topic.py[line:140] INFO load L1 topic from file
+Wednesday, 2017-09-13 10:53:09 task_mgr.py[line:27] INFO TaskManager: run task visit_topic_page
+Wednesday, 2017-09-13 10:53:09 topic.py[line:90] INFO visit L1 topics; num of L1 topics: 2770
+Wednesday, 2017-09-13 10:53:09 topic.py[line:90] INFO visit L1 topics; num of L1 topics: 2770
+Wednesday, 2017-09-13 10:53:09 topic.py[line:90] INFO visit L1 topics; num of L1 topics: 2770
+Wednesday, 2017-09-13 10:53:09 topic.py[line:90] INFO visit L1 topics; num of L1 topics: 2770
+Wednesday, 2017-09-13 10:53:10 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:10 topic.py[line:52] CRITICAL topic page 19683543 does not have name or focus
+Wednesday, 2017-09-13 10:53:10 topic.py[line:61] INFO Thread-3: visit L1 page name:None focus:None; visit:1; failed:1;total:2770; speed: 92.02 page/min  
+Wednesday, 2017-09-13 10:53:10 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:10 topic.py[line:52] CRITICAL topic page 20006522 does not have name or focus
+Wednesday, 2017-09-13 10:53:10 topic.py[line:61] INFO Thread-1: visit L1 page name:None focus:None; visit:1; failed:1;total:2770; speed: 88.50 page/min  
+Wednesday, 2017-09-13 10:53:10 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:10 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:10 topic.py[line:52] CRITICAL topic page 19567604 does not have name or focus
+Wednesday, 2017-09-13 10:53:10 topic.py[line:52] CRITICAL topic page 19954125 does not have name or focus
+Wednesday, 2017-09-13 10:53:10 topic.py[line:61] INFO Thread-3: visit L1 page name:None focus:None; visit:2; failed:2;total:2770; speed: 131.29 page/min  
+Wednesday, 2017-09-13 10:53:10 topic.py[line:61] INFO Thread-1: visit L1 page name:None focus:None; visit:2; failed:2;total:2770; speed: 131.00 page/min  
+Wednesday, 2017-09-13 10:53:10 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:10 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:10 topic.py[line:52] CRITICAL topic page 19630915 does not have name or focus
+Wednesday, 2017-09-13 10:53:10 topic.py[line:52] CRITICAL topic page 20006836 does not have name or focus
+Wednesday, 2017-09-13 10:53:10 topic.py[line:61] INFO Thread-3: visit L1 page name:None focus:None; visit:3; failed:3;total:2770; speed: 155.31 page/min  
+Wednesday, 2017-09-13 10:53:10 topic.py[line:61] INFO Thread-1: visit L1 page name:None focus:None; visit:3; failed:3;total:2770; speed: 154.91 page/min  
+Wednesday, 2017-09-13 10:53:11 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:11 topic.py[line:52] CRITICAL topic page 19682895 does not have name or focus
+Wednesday, 2017-09-13 10:53:11 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:11 topic.py[line:61] INFO Thread-1: visit L1 page name:None focus:None; visit:4; failed:4;total:2770; speed: 169.01 page/min  
+Wednesday, 2017-09-13 10:53:11 topic.py[line:52] CRITICAL topic page 19837499 does not have name or focus
+Wednesday, 2017-09-13 10:53:11 topic.py[line:61] INFO Thread-3: visit L1 page name:None focus:None; visit:4; failed:4;total:2770; speed: 166.44 page/min  
+Wednesday, 2017-09-13 10:53:11 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:11 topic.py[line:52] CRITICAL topic page 19731921 does not have name or focus
+Wednesday, 2017-09-13 10:53:11 topic.py[line:61] INFO Thread-1: visit L1 page name:None focus:None; visit:5; failed:5;total:2770; speed: 184.73 page/min  
+Wednesday, 2017-09-13 10:53:11 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:11 topic.py[line:52] CRITICAL topic page 19630910 does not have name or focus
+Wednesday, 2017-09-13 10:53:11 topic.py[line:61] INFO Thread-3: visit L1 page name:None focus:None; visit:5; failed:5;total:2770; speed: 183.04 page/min  
+Wednesday, 2017-09-13 10:53:11 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:11 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:11 topic.py[line:52] CRITICAL topic page 19560465 does not have name or focus
+Wednesday, 2017-09-13 10:53:11 topic.py[line:52] CRITICAL topic page 19867006 does not have name or focus
+Wednesday, 2017-09-13 10:53:11 topic.py[line:61] INFO Thread-3: visit L1 page name:None focus:None; visit:6; failed:6;total:2770; speed: 188.48 page/min  
+Wednesday, 2017-09-13 10:53:11 topic.py[line:61] INFO Thread-1: visit L1 page name:None focus:None; visit:6; failed:6;total:2770; speed: 188.28 page/min  
+Wednesday, 2017-09-13 10:53:11 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:11 topic.py[line:52] CRITICAL topic page 19602986 does not have name or focus
+Wednesday, 2017-09-13 10:53:11 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:11 topic.py[line:61] INFO Thread-3: visit L1 page name:None focus:None; visit:7; failed:7;total:2770; speed: 192.57 page/min  
+Wednesday, 2017-09-13 10:53:11 topic.py[line:52] CRITICAL topic page 19663735 does not have name or focus
+Wednesday, 2017-09-13 10:53:11 topic.py[line:61] INFO Thread-1: visit L1 page name:None focus:None; visit:7; failed:7;total:2770; speed: 190.22 page/min  
+Wednesday, 2017-09-13 10:53:12 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:12 topic.py[line:52] CRITICAL topic page 19551683 does not have name or focus
+Wednesday, 2017-09-13 10:53:12 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:12 topic.py[line:61] INFO Thread-3: visit L1 page name:None focus:None; visit:8; failed:8;total:2770; speed: 191.16 page/min  
+Wednesday, 2017-09-13 10:53:12 topic.py[line:52] CRITICAL topic page 19564158 does not have name or focus
+Wednesday, 2017-09-13 10:53:12 topic.py[line:61] INFO Thread-1: visit L1 page name:None focus:None; visit:8; failed:8;total:2770; speed: 190.40 page/min  
+Wednesday, 2017-09-13 10:53:12 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:12 topic.py[line:51] CRITICAL HTTP Error 429: 
+Wednesday, 2017-09-13 10:53:12 topic.py[line:52] CRITICAL topic page 19671473 does not have name or focus
+Wednesday, 2017-09-13 10:53:12 topic.py[line:52] CRITICAL topic page 19648000 does not have name or focus
+Wednesday, 2017-09-13 10:53:12 topic.py[line:61] INFO Thread-3: visit L1 page name:None focus:None; visit:9; failed:9;total:2770; speed: 195.87 page/min  
+Wednesday, 2017-09-13 10:53:12 topic.py[line:61] INFO Thread-1: visit L1 page name:None focus:None; visit:9; failed:9;total:2770; speed: 195.72 page/min  
+Wednesday, 2017-09-13 10:53:21 topic.py[line:61] INFO Thread-4: visit L1 page name:宫崎骏 focus:42128; visit:1; failed:0;total:2770; speed: 5.24 page/min  
