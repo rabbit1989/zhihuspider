@@ -21,19 +21,20 @@ class RPCProtocol(LineReceiver):
 		self.client_id = repr(self.transport.getPeer())
 		logging.info('new connection: %s', self.client_id)
 		self.factory.clients[self.client_id] = RPCProtocolWrapper(self)
-
+		self.factory.on_new_client_arrived(self.client_id)
 
 	def connectionLost(self, reason):
 		logging.warn('connection lost: %s', self.client_id)
+		self.factory.on_lose_client(self.client_id)
 		del self.factory.clients[self.client_id]
 
 	def lineReceived(self, line):
-		logging.info('receive data: [%s]', line)
+	#	logging.info('receive data: [%s]', line)
 		#unpack data
 		args_dict = eval(line)
 		args = args_dict['args']
 		kwargs = args_dict['kwargs']
-		self.factory.client = self.factory.clients[self.client_id]
+		self.factory.cur_client = self.factory.clients[self.client_id]
 		self.factory.on_call_rpcmethod(*args, **kwargs)
 
 class RPCProtocolWrapper:
@@ -52,3 +53,6 @@ class RPCProtocolWrapper:
 		#pack data
 		data = repr({'args':args, 'kwargs':kwargs}) + '\n'
 		self.rpc_proto.transport.write(data)
+
+	def get_peer(self):
+		return self.rpc_proto.transport.getPeer()

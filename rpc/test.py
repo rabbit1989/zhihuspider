@@ -12,7 +12,7 @@ class TestServer(rpc_server.RPCServer):
 	@rpc_method
 	def is_proxy_good(self, ip, port):
 		logging.info('server:proxy %s:%s is good',ip, str(port))
-		self.client.on_is_proxy_good('proxy is velly velly good!')
+		self.cur_client.on_is_proxy_good('proxy is velly velly good!')
 
 	def i_am_not_rpc(self, ip, port):
 		logging.fatal('server: ooops! it\'s impossible to reach here!')

@@ -8,6 +8,10 @@ import os
 import time
 import consts
 import random
+import traceback
+import threading
+from rpc.rpc_client import RPCClient
+from rpc.rpc_protocol import rpc_method
 from bs4 import BeautifulSoup
 
 def net_connected(func):
@@ -20,16 +24,17 @@ def net_connected(func):
 	return wrapper
 
 
-class ProxyMgr:
+class ProxyMgr(RPCClient):
 	def __init__(self,):
+		RPCClient.__init__(self)
 		self.proxy_dict = {}
-		cf = ConfigParser.ConfigParser()
-		cf.read('config.ini')
-		self.provider_url = cf.get('proxy', 'provider_url')
-		self.log_path = cf.get('proxy', 'log_path')
-		self.data_path = cf.get('proxy', 'data_path')
-		self.test_url = cf.get('proxy', 'test_url')
-
+		self.cf = ConfigParser.ConfigParser()
+		self.cf.read('config.ini')
+		self.provider_url = self.cf.get('proxy', 'provider_url')
+		self.data_path = self.cf.get('proxy', 'data_path')
+		self.test_url = self.cf.get('proxy', 'test_url')
+		self.log_path = self.cf.get('log', 'proxy_path')
+		
 	@net_connected
 	def fetch_proxy(self,):
 		'''
@@ -54,15 +59,16 @@ class ProxyMgr:
 					ip = tds[1].text
 					port = tds[2].text
 					url = ip + ':' + port
-					tp = tds[5]
+					tp = tds[5].text
 					if self.test_proxy(url, tp) == 'ok' and not self.proxy_dict.has_key(url):
 						logging.info('find new good proxy: %s', url)
-						self.proxy_dict[url] = {'type':tp, 'status':'ok', 'used':False}
+						self.proxy_dict[url] = {'type':tp, 'status':'ok'}
 					num_ip += 1
 					if num_ip == 10:
 						break
-			except Exception, e:
-				logging.fatal(e)
+		except Exception, e:
+			traceback.print_exc()
+			logging.fatal(e)
 		logging.info('num of proxy: %d', len(self.proxy_dict))
 
 	@net_connected
@@ -80,13 +86,6 @@ class ProxyMgr:
 		self.proxy_dict = d
 		self.dump()
 
-
-	#rpc method
-	def get_avail_proxy(self,):
-		for url, val in self.proxy_dict.iteritems():
-			if val['status'] == 'ok' and val['used'] == False:
-				val['used'] = True
-				return {'url':url, 'type':val['type']}
 				
 	def test_proxy(self, url, tp):
 		''' 
@@ -122,14 +121,39 @@ class ProxyMgr:
 		cPickle.load(self.proxy_dict, f)
 		f.close()
 
-	def run(self):
-		utils.init_logger(self.log_path)
+	def update(self):
 		while True:
 			self.fetch_proxy()
-			time.sleep(5)
+			time.sleep(10)
 			self.update_status()
-			time.sleep(100)
+			time.sleep(50)
 
+
+	def run(self):
+		utils.init_logger(self.log_path)
+		thread = threading.Thread(target = self.update)
+		thread.start()
+
+		ip = self.cf.get('crawl_master', 'ip')
+		port = self.cf.get('crawl_master', 'port')
+		self.start_rpc_client(ip, int(port))
+
+	def on_new_client_arrived(self, client_id):
+		self.clients[client_id].i_am_proxy()
+
+
+	@rpc_method
+	def get_avail_proxy(self,):
+		proxy_id = None
+		proxy = None
+		for url, val in self.proxy_dict.iteritems():
+			if val['status'] == 'ok':
+				proxy_id = url
+				break
+		if proxy_id is not None:
+			proxy = {'url':proxy_id, 'type':val['type']}
+			del self.proxy_dict[proxy_id]
+		self.cur_client.on_get_avail_proxy(proxy)
 
 if __name__ == '__main__':
 	proxy_mgr = ProxyMgr()

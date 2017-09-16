@@ -43,3 +43,6 @@ pytesser/tessdata/configs/inter
 pytesser/tessdata/configs/box.train
 pytesser/tesseract.exe
 pytesser/util.py
+rpc/log_client
+rpc/log_client
+rpc/log_server
