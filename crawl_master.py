@@ -17,7 +17,8 @@ class CrawlMaster(RPCServer):
 		RPCServer.__init__(self)
 		self.slaves_need_proxy = {}
 		self.slave_clients = {}
-		self.proxy_client = None
+		self.proxy_clients = []
+		self.last_proxy_serverd = 0
 		self.topic_spider = topic.TopicSpider()
 
 
@@ -28,6 +29,8 @@ class CrawlMaster(RPCServer):
 			time.sleep(5)
 			if task == None:
 				task = self.topic_spider.assign_works()
+				if task == None:
+					break
 			num_ava_slaves = 0
 			for slave_client in self.slave_clients.keys():
 				if self.slave_clients[slave_client] == True:
@@ -37,6 +40,7 @@ class CrawlMaster(RPCServer):
 					task = None
 					break
 			logging.info('%d/%d of slaves are free', num_ava_slaves, len(self.slave_clients))
+		logging.info('all task has been assigned!!')
 
 	def run(self):
 		cf = ConfigParser.ConfigParser()
@@ -48,8 +52,8 @@ class CrawlMaster(RPCServer):
 		self.start_rpc_server(port)
 
 	def on_lose_client(self, client_id):
-		if self.proxy_client == client_id:
-			self.proxy_client = None
+		if client_id in self.proxy_clients:
+			self.proxy_clients.remove(client_id)
 		elif self.slave_clients.has_key(client_id):
 			del self.slave_clients[client_id]
 	
@@ -57,22 +61,21 @@ class CrawlMaster(RPCServer):
 	def slave_need_proxy(self):
 		client_id = repr(self.cur_client.get_peer())
 		self.slaves_need_proxy[client_id] = True				
-		if self.proxy_client is None:
+		if len(self.proxy_client) == 0:
 			logging.warn('master: slave_need_proxy(): no proxy client found')
-			self.cur_client.on_slave_need_proxy({})
 		else:
-			self.clients[self.proxy_client].get_avail_proxy()
+			self.clients[self.proxy_clients[self.last_proxy_serverd%2]].get_avail_proxy()
+			self.last_proxy_serverd += 1
 
 	@rpc_method
 	def i_am_proxy(self):
-		client_id = repr(self.cur_client.get_peer())
-		self.proxy_client = client_id
-		logging.info('master: get new proxynode: %s', client_id)
+		if not self.cur_client_id in self.proxy_clients:
+			self.proxy_clients.append(self.cur_client_id)
+			logging.info('master: get new proxynode: %s', self.cur_client_id)
 
 	@rpc_method
 	def i_am_slave(self):
-		client_id = repr(self.cur_client.get_peer())
-		self.slave_clients[client_id] = False
+		self.slave_clients[self.cur_client_id] = False
 
 	@rpc_method
 	def on_get_avail_proxy(self, proxy):

@@ -59,6 +59,9 @@ class TopicSpider:
 		logging.info('num of visited page: %d', self.num_visited_pages)
 		if self.start_time < 0:
 			self.start_time = time.time()
+		if len(self.l1_topics) <= self.num_visited_pages:
+			return None
+			
 		data = self.l1_topics[self.num_visited_pages:self.num_visited_pages+10]
 		self.num_visited_pages += 10
 		return data

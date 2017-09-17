@@ -19,9 +19,10 @@ class RPCClient(ClientFactory):
 
 	def clientConnectionLost(self, connector, reason):
 		logging.info('Lost connection, reason: %s', reason)
-
+		connector.connect()
 	def clientConnectionFailed(self, connector, reason):
 		logging.info('Connection failed .Reason: %s', reason)
+		connector.connect()
 
 	def on_call_rpcmethod(self, rpc_method, *args, **kwargs):
 		if hasattr(self, rpc_method):
