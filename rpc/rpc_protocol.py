@@ -35,6 +35,7 @@ class RPCProtocol(LineReceiver):
 		args = args_dict['args']
 		kwargs = args_dict['kwargs']
 		self.factory.cur_client = self.factory.clients[self.client_id]
+		self.factory.cur_client_id = self.client_id
 		self.factory.on_call_rpcmethod(*args, **kwargs)
 
 class RPCProtocolWrapper:

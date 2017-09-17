@@ -34,22 +34,23 @@ class ProxyMgr(RPCClient):
 		self.data_path = self.cf.get('proxy', 'data_path')
 		self.test_url = self.cf.get('proxy', 'test_url')
 		self.log_path = self.cf.get('log', 'proxy_path')
-		
+		self.load()
+
 	@net_connected
 	def fetch_proxy(self,):
 		'''
 			从代理提供网站爬取新的可用代理
 		'''
+		logging.info('fetch_proxy()...')
 		if len(self.proxy_dict) > 100:
 			logging.warn('num of good proxy in dict exceeds 100, will not fetch new proxy this time')
 			return
 		try:
 			agent = consts.http_hds[random.randint(0,len(consts.http_hds)-1)]
 			req = urllib2.Request(self.provider_url, headers=agent)
-			html_text = urllib2.urlopen(req,timeout=5).read()
+			html_text = urllib2.urlopen(req,timeout=4).read()
 			soup = BeautifulSoup(html_text, 'lxml')
 			ip_list = soup.find('table', {'id': 'ip_list'})
-			num_ip = 0
 			#一次检查10个
 			for tr in ip_list.findAll('tr'):
 				if tr.attrs.has_key('class') and tr.attrs['class'] != 'subtitle':
@@ -59,30 +60,38 @@ class ProxyMgr(RPCClient):
 					ip = tds[1].text
 					port = tds[2].text
 					url = ip + ':' + port
-					tp = tds[5].text
-					if self.test_proxy(url, tp) == 'ok' and not self.proxy_dict.has_key(url):
-						logging.info('find new good proxy: %s', url)
-						self.proxy_dict[url] = {'type':tp, 'status':'ok'}
-					num_ip += 1
-					if num_ip == 10:
-						break
+					tp = tds[5].text.lower()
+					if tp != 'https':
+						continue
+					try:
+						if not self.proxy_dict.has_key(url) and self.test_proxy(url, tp) == 'ok':
+							logging.info('find new good proxy: %s', url)
+							self.proxy_dict[url] = {'type':tp, 'status':'ok', 'used':False}
+					except Exception, e:
+						logging.fatal(e)
 		except Exception, e:
 			traceback.print_exc()
 			logging.fatal(e)
-		logging.info('num of proxy: %d', len(self.proxy_dict))
+		logging.info('num of good proxy: %d', len(self.proxy_dict))
 
 	@net_connected
 	def update_status(self):
 		'''
 			更新代理列表
 		'''
+		logging.info('update proxy()...')
 		d = {}
 		for url, val in self.proxy_dict.iteritems():
-			tp = val['type']
-			new_status = self.test_proxy(url, tp)
-			if new_status is 'ok':
-				val['status'] = new_status
-				d[url] = val
+			try:
+				tp = val['type']
+				new_status = self.test_proxy(url, tp)
+				if val['used'] == False and new_status == 'ok':
+					val['status'] = new_status
+					val['used'] = False
+					d[url] = val
+				logging.info('%s is %s', url, new_status)
+			except Exception, e:
+				logging.fatal(e)
 		self.proxy_dict = d
 		self.dump()
 
@@ -97,12 +106,13 @@ class ProxyMgr(RPCClient):
 		handler = urllib2.ProxyHandler({tp: url})
 		opener = urllib2.build_opener(handler)
 		urllib2.install_opener(opener)
-		resp = urllib2.urlopen(self.test_url, timeout = 7)
+		url = tp+'://'+self.test_url
+		resp = urllib2.urlopen(url, timeout = 7)
 		if resp.getcode() == 200:
 			status = 'ok'
 		else:
 			status = 'error'
-		logging.info('%s is %s', url, status)
+#		logging.info('%s is %s', url, status)
 		
 		#取消代理
 		handler = urllib2.ProxyHandler({})
@@ -118,16 +128,13 @@ class ProxyMgr(RPCClient):
 
 	def load(self):
 		f = open(self.data_path, 'rb')
-		cPickle.load(self.proxy_dict, f)
+		self.proxy_dict = cPickle.load(f)
 		f.close()
 
 	def update(self):
 		while True:
-			self.fetch_proxy()
-			time.sleep(10)
 			self.update_status()
-			time.sleep(50)
-
+			self.fetch_proxy()
 
 	def run(self):
 		utils.init_logger(self.log_path)
@@ -145,15 +152,16 @@ class ProxyMgr(RPCClient):
 	@rpc_method
 	def get_avail_proxy(self,):
 		proxy_id = None
-		proxy = None
+		proxy = {}
 		for url, val in self.proxy_dict.iteritems():
-			if val['status'] == 'ok':
+			if val['status'] == 'ok' and val['used'] == False:
 				proxy_id = url
 				break
 		if proxy_id is not None:
 			proxy = {'url':proxy_id, 'type':val['type']}
-			del self.proxy_dict[proxy_id]
+			self.proxy_dict[proxy_id]['used'] = True
 		self.cur_client.on_get_avail_proxy(proxy)
+		self.dump()
 
 if __name__ == '__main__':
 	proxy_mgr = ProxyMgr()

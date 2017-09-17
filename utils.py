@@ -124,7 +124,17 @@ def get_soup_request(url):
 	plain_text = urllib2.urlopen(req,timeout=7).read()
 	return BeautifulSoup(plain_text, 'lxml')
 
+def get_response(url):
+	agent = consts.http_hds[random.randint(0,len(consts.http_hds)-1)]
+	req = urllib2.Request(url,headers=agent)
+	return urllib2.urlopen(req,timeout=15)
+
+
 def save_page(_id, page_text):
 	f = open('err_pages/' + str(_id) + '.html', 'wb')
 	f.weite(page_text)
 	f.close()		
+
+
+def load_module(module_name):
+	pass

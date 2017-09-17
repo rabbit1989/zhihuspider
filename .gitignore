@@ -46,3 +46,6 @@ pytesser/util.py
 rpc/log_client
 rpc/log_client
 rpc/log_server
+rpc/log_client
+rpc/log_client
+rpc/log_server

@@ -4,6 +4,7 @@ import utils
 import threading
 import time
 import ConfigParser
+import topic
 from rpc.rpc_server import RPCServer
 from rpc.rpc_protocol import rpc_method
 
@@ -17,13 +18,25 @@ class CrawlMaster(RPCServer):
 		self.slaves_need_proxy = {}
 		self.slave_clients = {}
 		self.proxy_client = None
+		self.topic_spider = topic.TopicSpider()
+
 
 	def update(self):
+		task = None
+		self.topic_spider.prepare_work()
 		while 1:
-			time.sleep(20)
+			time.sleep(5)
+			if task == None:
+				task = self.topic_spider.assign_works()
+			num_ava_slaves = 0
 			for slave_client in self.slave_clients.keys():
-				logging.info('master: let slave do task, slave_id %s', slave_client)
-				self.clients[slave_client].do_task()
+				if self.slave_clients[slave_client] == True:
+					num_ava_slaves += 1
+					self.slave_clients[slave_client] = False
+					self.clients[slave_client].do_task(task)
+					task = None
+					break
+			logging.info('%d/%d of slaves are free', num_ava_slaves, len(self.slave_clients))
 
 	def run(self):
 		cf = ConfigParser.ConfigParser()
@@ -59,22 +72,26 @@ class CrawlMaster(RPCServer):
 	@rpc_method
 	def i_am_slave(self):
 		client_id = repr(self.cur_client.get_peer())
-		self.slave_clients[client_id] = True
+		self.slave_clients[client_id] = False
 
 	@rpc_method
 	def on_get_avail_proxy(self, proxy):
-		client_satisfied = None
-		for client_id in self.slaves_need_proxy.keys():
-			logging.info('on_get_avail_proxy(): proxy info found, send to slave')
-			self.clients[client_id].on_slave_need_proxy(proxy)
-			client_satisfied = client_id
-			break
-		del self.slaves_need_proxy[client_satisfied]
+		if (len(proxy) > 0):
+			client_satisfied = None
+			for client_id in self.slaves_need_proxy.keys():
+				self.clients[client_id].on_slave_need_proxy(proxy)
+				client_satisfied = client_id
+				break
+			del self.slaves_need_proxy[client_satisfied]
 
 	@rpc_method
-	def on_do_task(self, ):
+	def on_do_task(self, res):
 		logging.info('master: on_do_task()')
+		self.topic_spider.receive_work_result(res)
 
+	@rpc_method
+	def slave_is_available(self, val):
+		self.slave_clients[self.cur_client_id] = val
 
 if __name__ == '__main__':
 	crawl_master = CrawlMaster()
