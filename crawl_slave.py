@@ -41,6 +41,7 @@ class CrawlSlave(RPCClient):
 				logging.fatal(e)
 
 			if self.is_proxy_ok == True and self.task_queue.empty() == True:
+				logging.info('waiting for a good proxy...')
 				self.clients[self.master_client_id].slave_is_available(True)
 			time.sleep(2)
 

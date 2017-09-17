@@ -23,22 +23,23 @@ class CrawlMaster(RPCServer):
 
 
 	def update(self):
-		task = None
 		self.topic_spider.prepare_work()
+		done = False
 		while 1:
 			time.sleep(5)
-			if task == None:
-				task = self.topic_spider.assign_works()
-				if task == None:
-					break
 			num_ava_slaves = 0
 			for slave_client in self.slave_clients.keys():
 				if self.slave_clients[slave_client] == True:
+					task = self.topic_spider.assign_works()
+					if task == None:
+						done = True
+						break
 					num_ava_slaves += 1
 					self.slave_clients[slave_client] = False
 					self.clients[slave_client].do_task(task)
-					task = None
-					break
+			if done == True:
+				break
+
 			logging.info('%d/%d of slaves are free', num_ava_slaves, len(self.slave_clients))
 		logging.info('all task has been assigned!!')
 
