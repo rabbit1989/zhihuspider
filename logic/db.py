@@ -1,11 +1,10 @@
 #coding=utf-8
+import sys
 import MySQLdb
 import ConfigParser
 
 class DBConnection:
-	def __init__(self):
-		cf = ConfigParser.ConfigParser()
-		cf.read("config.ini")
+	def __init__(self, cf):
 		host = cf.get("db", "host")
 		port = int(cf.get("db", "port"))
 		user = cf.get("db", "user")

@@ -35,6 +35,19 @@ class RPCClient(ClientFactory):
 		else:
 			raise Exception('rpc method %s not exist', rpc_method)
 
+	def on_new_client_arrived(self, client_id):
+		'''
+			新客户端连接后，如需要进行一些操作，请重写该方法
+		'''
+		logging.info('RPCClient: on_new_client_arrived %s', client_id)
+
+	def on_lose_client(self, client_id):
+		'''
+			客户端丢失连接后，如需进行一些善后，请重写该方法
+		'''
+		logging.info('RPCClient: on_lose_client%s', client_id)
+
+
 	def start_rpc_client(self, ip, port):
 		'''
 			run函数是阻塞的，请在完成其他所有工作后再调用

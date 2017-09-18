@@ -1,28 +1,16 @@
 #coding=utf-8
 from datetime import datetime
 import logging
-import sys
 import time
 import random
 import urllib2
 import copy
-import consts
+import sys
+import common.consts as consts
 from bs4 import BeautifulSoup
 
 def get_sql_time():
 	return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-def init_logger(log_path):
-	logging.basicConfig(level=logging.INFO, 
-			format = '%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
-			datefmt='%A, %Y-%m-%d %H:%M:%S', 
-			filename= log_path, 
-			filemode = 'w')
-	console = logging.StreamHandler()
-	console.setLevel(logging.INFO)
-	formatter = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
-	console.setFormatter(formatter)
-	logging.getLogger('').addHandler(console)
 
 def get_links(bs, rule):
 	nodes = rule(bs)
@@ -90,12 +78,13 @@ def merge_dict(data_list):
 		d.update(data_dict)
 	return d
 
-def add_new_topics(topic_links, topic_dict):
+def add_new_topics(topic_links, topic_list, unique_topic_set):
 	cur_time = get_sql_time()
 	for topic_link in topic_links:
 		linkid = copy.copy(topic_link[topic_link.rfind('/')+1:])
-		if not topic_dict.has_key(linkid):
-			topic_dict[linkid] = {'name':None, 'focus':None, 'last_visit':cur_time, 'add_time':cur_time}
+		if not unique_topic_set.has_key(linkid):
+			unique_topic_set[linkid] = True
+			topic_list.append((linkid, {'name':None, 'focus':None, 'last_visit':cur_time, 'add_time':cur_time, 'expend':False})) 
 
 def get_soup(wd, url, scroll_end = False, times = sys.maxint):
 	'''
@@ -133,8 +122,4 @@ def get_response(url):
 def save_page(_id, page_text):
 	f = open('err_pages/' + str(_id) + '.html', 'wb')
 	f.weite(page_text)
-	f.close()		
-
-
-def load_module(module_name):
-	pass
+	f.close()

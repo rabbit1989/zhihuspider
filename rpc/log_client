@@ -1,5 +1,0 @@
-Friday, 2017-09-15 14:47:17 rpc_client.py[line:15] INFO Started to connect.
-Friday, 2017-09-15 14:47:17 rpc_protocol.py[line:22] INFO new connection: IPv4Address(TCP, '127.0.0.1', 9999)
-Friday, 2017-09-15 14:47:22 rpc_protocol.py[line:27] WARNING connection lost: IPv4Address(TCP, '127.0.0.1', 9999)
-Friday, 2017-09-15 14:47:22 rpc_client.py[line:21] INFO Lost connection, reason: [Failure instance: Traceback (failure with no frames): <class 'twisted.internet.error.ConnectionLost'>: Connection to the other side was lost in a non-clean fashion.
-]

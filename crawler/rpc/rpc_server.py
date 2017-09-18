@@ -17,14 +17,14 @@ class RPCServer(ServerFactory):
 		'''
 			新客户端连接后，如需要进行一些操作，请重写该方法
 		'''
-		pass
+		logging.info('RPCServer: on_new_client_arrived %s', client_id)
 
 	def on_lose_client(self, client_id):
 		'''
 			客户端丢失连接后，如需进行一些善后，请重写该方法
 		'''
-		pass
-
+		logging.info('RPCServer: on_lose_client%s', client_id)
+		
 	def on_call_rpcmethod(self, rpc_method, *args, **kwargs):
 		if hasattr(self, rpc_method):
 			func = getattr(self, rpc_method)
