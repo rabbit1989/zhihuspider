@@ -78,13 +78,11 @@ def merge_dict(data_list):
 		d.update(data_dict)
 	return d
 
-def add_new_topics(topic_links, topic_list, unique_topic_set):
+def add_new_topics(topic_links, topic_list):
 	cur_time = get_sql_time()
 	for topic_link in topic_links:
 		linkid = copy.copy(topic_link[topic_link.rfind('/')+1:])
-		if not unique_topic_set.has_key(linkid):
-			unique_topic_set[linkid] = True
-			topic_list.append((linkid, {'name':None, 'focus':None, 'last_visit':cur_time, 'add_time':cur_time, 'expend':False})) 
+		topic_list.append((linkid, {'name':None, 'focus':None, 'last_visit':cur_time, 'add_time':cur_time, 'expend':False})) 
 
 def get_soup(wd, url, scroll_end = False, times = sys.maxint):
 	'''

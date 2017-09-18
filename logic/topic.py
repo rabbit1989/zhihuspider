@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-def visit_page(topics, unique_topic_set, page_failed):
+def visit_page(topics, page_failed):
 	output = {'org':[], 'expend':[]}
 	topic_failed = []
 	linkid_pattern = re.compile('/[0-9]+')
@@ -44,7 +44,7 @@ def visit_page(topics, unique_topic_set, page_failed):
 			if val['expend'] == True:
 				topic_links_l2 = utils.get_links(soup, crawl_rule.l2_topics)
 				logging.info('get %d expend pages', len(topic_links_l2))
-				utils.add_new_topics(topic_links_l2, output['expend'], unique_topic_set)			
+				utils.add_new_topics(topic_links_l2, output['expend'])			
 			soup.decompose()
 			gc.collect()
 		except Exception, e:
@@ -71,6 +71,7 @@ class topic:
 		self.num_received_results = 0
 		self.start_time = -1
 		self.page_failed = {}
+		#只在crawl_master端使用
 		self.unique_topics = {}
 
 	def assign_works(self, ):
@@ -100,7 +101,15 @@ class topic:
 			except Exception, e:
 				traceback.print_exc()
 				logging.fatal(e)
-		self.topics += result['expend']
+
+		for ele in result['expend']:
+			if not self.unique_topics.has_key(ele[0]):
+				logging.info('expend topic %s is new, add to task list', ele[0])
+				self.unique_topics[ele[0]] = True
+				self.topics.append(ele)
+			else:
+				logging.warn('expend topic %s has been processed, skipped', ele[0])
+		
 		logging.info('process speed so far: %d pages/min; %d pages to be processed', self.num_received_results/(cur_time-self.start_time)*60, len(self.topics)-self.num_visited_pages)
 
 	def on_assign_works(self, _input):
@@ -108,11 +117,14 @@ class topic:
 			called on crawl slave
 		'''
 		logging.info('num of input: %d', len(_input))
-		input_unfinished, output = visit_page(_input, self.unique_topics, self.page_failed)
+		input_unfinished, output = visit_page(_input, self.page_failed)
 		logging.info('%d/%d success', len(output['org']), len(_input))
 		return input_unfinished, output
 
 	def prepare_work(self, ):
+		'''
+			called on crawl master
+		'''
 		logging.info('topic spider: prepare work')
 		#查看是否已有h1 topic的dump，如果没有再生成
 		l1_topic_path = self.cf.get('topic', 'l1_topic_path')

@@ -69,7 +69,7 @@ class ProxyMgr(RPCClient):
 							logging.info('fetch_proxy():find new good proxy: %s', url)
 							self.proxy_dict[url] = {'type':tp, 'status':'ok', 'used':False}
 					except Exception, e:
-						logging.fatal(e)
+						logging.fatal('error try %s: %s',url, repr(e))
 		except Exception, e:
 			logging.fatal(e)
 		logging.info('num of good proxy: %d', len(self.proxy_dict))
