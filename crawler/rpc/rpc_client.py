@@ -10,9 +10,10 @@ class RPCClient(ClientFactory):
 	def __init__(self):
 		self.clients = {}
 		self.client = None
-
+	#	self.connector = None
 	def startedConnecting(self, connector):
 		logging.info('Started to connect.')
+	#	self.connector = connector
 
 #	def buildProtocol(self, addr):
 #		logging.info(str(addr), ' connected.')
@@ -20,6 +21,7 @@ class RPCClient(ClientFactory):
 	def clientConnectionLost(self, connector, reason):
 		logging.info('Lost connection, reason: %s', reason)
 		connector.connect()
+	
 	def clientConnectionFailed(self, connector, reason):
 		logging.info('Connection failed .Reason: %s', reason)
 		connector.connect()
@@ -45,8 +47,10 @@ class RPCClient(ClientFactory):
 		'''
 			客户端丢失连接后，如需进行一些善后，请重写该方法
 		'''
-		logging.info('RPCClient: on_lose_client%s', client_id)
+		logging.info('RPCClient: on_lose_client%s, ', client_id)
 
+	def reconnect(self):
+		pass
 
 	def start_rpc_client(self, ip, port):
 		'''

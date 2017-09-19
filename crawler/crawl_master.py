@@ -61,7 +61,7 @@ class CrawlMaster(RPCServer):
 			self.proxy_clients.remove(client_id)
 		elif self.slave_clients.has_key(client_id):
 			del self.slave_clients[client_id]
-	
+
 	@rpc_method
 	def slave_need_proxy(self):
 		self.slaves_need_proxy[self.cur_client_id] = True				
@@ -88,10 +88,12 @@ class CrawlMaster(RPCServer):
 		if len(proxy) > 0:
 			client_satisfied = None
 			for client_id in self.slaves_need_proxy.keys():
-				self.clients[client_id].on_slave_need_proxy(proxy)
-				client_satisfied = client_id
-				break
-			del self.slaves_need_proxy[client_satisfied]
+				if self.slaves_need_proxy[client_id] == True and self.slave_clients.has_key(client_id):
+					self.clients[client_id].on_slave_need_proxy(proxy)
+					client_satisfied = client_id
+					break
+			if client_satisfied != None:
+				self.slaves_need_proxy[client_satisfied] = False
 
 	@rpc_method
 	def on_do_task(self, res):

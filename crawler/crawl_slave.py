@@ -47,7 +47,8 @@ class CrawlSlave(RPCClient):
 
 			if self.is_proxy_ok == True and self.task_queue.empty() == True:
 				logging.info('slave is ready to work...')
-				self.clients[self.master_client_id].slave_is_available(True)
+				if self.master_client_id != None:
+					self.clients[self.master_client_id].slave_is_available(True)
 
 	def run(self):
 		cf = ConfigParser.ConfigParser()
@@ -70,6 +71,7 @@ class CrawlSlave(RPCClient):
 	def on_lose_client(self, client_id):
 		logging.fatal('slave lost connection with master, now it can do nothing')
 		slef.master_client_id = None
+		self.reconnect()
 
 	@rpc_method
 	def do_task(self, task):

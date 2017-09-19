@@ -25,9 +25,9 @@ class RPCProtocol(LineReceiver):
 
 	def connectionLost(self, reason):
 		logging.warn('connection lost: %s', self.client_id)
-		self.factory.on_lose_client(self.client_id)
 		del self.factory.clients[self.client_id]
-
+		self.factory.on_lose_client(self.client_id)
+		
 	def lineReceived(self, line):
 	#	logging.info('receive data: [%s]', line)
 		#unpack data
