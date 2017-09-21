@@ -18,3 +18,12 @@ def load_logic_module(logic_name):
 	logic_module = __import__(logic_name)
 	logic_module = getattr(logic_module, logic_name)()
 	return logic_module
+
+def net_connected(func):
+	def wrapper(*args, **kwargs):
+		exit_code = os.system('ping www.baidu.com')
+		if exit_code:
+			logging.fatal('network is disconnected, %s() will not been executed ', func.__name__)
+		else:
+			func(*args, **kwargs)
+	return wrapper

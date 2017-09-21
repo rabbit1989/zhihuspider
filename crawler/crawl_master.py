@@ -12,13 +12,13 @@ class CrawlMaster(RPCServer):
 	'''
 		CrawlMaster负责整体调度
 	'''
-	def __init__(self):
+	def __init__(self, logic = None):
 		RPCServer.__init__(self)
 		self.slaves_need_proxy = {}
 		self.slave_clients = {}
 		self.proxy_clients = []
 		self.last_proxy_serverd = 0
-		self.logic = None
+		self.logic = logic
 
 	def update(self):
 		self.logic.prepare_work()
@@ -43,14 +43,10 @@ class CrawlMaster(RPCServer):
 		
 		logging.info('all works has been assigned!!')
 
-	def run(self):
-		work_dir = os.path.dirname(os.path.abspath(__file__))
-		config_file_path = os.path.join(work_dir,'config.ini')
-		cf = ConfigParser.ConfigParser()
-		cf.read(config_file_path)
+	def run(self, cf):
 		common.utils.init_logger(cf.get('log', 'crawl_master_path'))
-		self.logic = common.utils.load_logic_module(cf.get('crawl_master', 'logic_name'))
-
+		if self.logic is None:
+			self.logic = common.utils.load_logic_module(cf.get('crawl_master', 'logic_name'))
 		port = int(cf.get('crawl_master', 'port'))
 		thread = threading.Thread(target=self.update)
 		thread.start()
@@ -105,5 +101,9 @@ class CrawlMaster(RPCServer):
 		self.slave_clients[self.cur_client_id] = val
 
 if __name__ == '__main__':
-	crawl_master = CrawlMaster()
-	crawl_master.run()
+	work_dir = os.path.dirname(os.path.abspath(__file__))
+	config_file_path = os.path.join(work_dir,'config.ini')
+	cf = ConfigParser.ConfigParser()
+	cf.read(config_file_path)
+	crawl_master = CrawlMaster()		
+	crawl_master.run(cf)

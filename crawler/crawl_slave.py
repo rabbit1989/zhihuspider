@@ -18,44 +18,46 @@ class CrawlSlave(RPCClient):
 		self.task_queue = Queue.Queue()
 		self.logic = None
 		self.is_proxy_ok = False
+		self.need_proxy = None
 
 	def update(self):
 		task = []
 		while True:
-			time.sleep(2)
-			if self.master_client_id == None:
-				continue
-
-			if self.is_proxy_ok == False:
-				logging.warn('waiting for good proxy')
-				self.clients[self.master_client_id].slave_need_proxy()		
-				continue
-				
-			try:
-				task += self.task_queue.get(block = False)
-			except Exception, e:
-				logging.fatal(e)
-
-			if len(task) > 0:
+			time.sleep(3)
+			if self.can_do_task() == True:	
+				task = self.task_queue.get(block = False)
 				task_unfinished, output = self.logic.on_assign_works(task)
-				
+				if len(task_unfinished) > 0:
+					self.task_queue.put(task_unfinished)
+
 				if float(len(task_unfinished))/len(task) > 0.5:
 					logging.info('slave:update(), proxy is not good, want change a good one')
 					self.is_proxy_ok = False
-				task = task_unfinished
 				self.clients[self.master_client_id].on_do_task(output)
 
-			if self.is_proxy_ok == True and self.task_queue.empty() == True:
-				logging.info('slave is ready to work...')
-				if self.master_client_id != None:
-					self.clients[self.master_client_id].slave_is_available(True)
+	def can_do_task(self):
+		'''
+			判断当前是否可以开始执行任务
+		'''
+		if self.master_client_id == None:
+			logging.warn('slave master lost, do nothing')
+			return False
+		
+		if self.need_proxy == True and self.is_proxy_ok == False:
+			logging.warn('waiting for good proxy')
+			self.clients[self.master_client_id].slave_need_proxy()
+			return False
 
-	def run(self):
-		cf = ConfigParser.ConfigParser()
-		work_dir = os.path.dirname(os.path.abspath(__file__))
-		config_file_path = os.path.join(work_dir,'config.ini')
-		cf.read(config_file_path)
+		if (self.need_proxy == False or self.is_proxy_ok == True) and self.task_queue.empty() == True:
+			logging.info('slave is ready to work...')
+			if self.master_client_id != None:
+				self.clients[self.master_client_id].slave_is_available(True)
+			return False
+		return True
+
+	def run(self, cf):
 		self.logic = common.utils.load_logic_module(cf.get('crawl_master', 'logic_name'))
+		self.need_proxy = cf.get('crawl_slave', 'need_proxy') == 'True'
 		master_ip = cf.get('crawl_master', 'ip')
 		master_port = cf.get('crawl_master', 'port')
 		thread = threading.Thread(target = self.update)
@@ -66,17 +68,20 @@ class CrawlSlave(RPCClient):
 		logging.info('slave: get new client, it must be the crawl master')
 		self.master_client_id = client_id
 		self.clients[client_id].i_am_slave()
-		self.clients[self.master_client_id].slave_need_proxy()
+		if self.need_proxy == True:
+			self.clients[self.master_client_id].slave_need_proxy()
 
 	def on_lose_client(self, client_id):
 		logging.fatal('slave lost connection with master, now it can do nothing')
-		slef.master_client_id = None
-		self.reconnect()
+		self.master_client_id = None
 
 	@rpc_method
 	def do_task(self, task):
-		logging.info('slave::do_task(): get_new_task, push it to queue')	
-		self.task_queue.put(task)
+		if len(task) > 0:
+			logging.info('slave::do_task(): get_new_task, push it to queue')
+			self.task_queue.put(task)
+		else:
+			logging.info('slave: task is empty')
 
 	@rpc_method
 	def on_slave_need_proxy(self, proxy):
@@ -89,5 +94,11 @@ class CrawlSlave(RPCClient):
 
 if __name__ == '__main__':
 	common.utils.init_logger(sys.argv[1])
+	
+	cf = ConfigParser.ConfigParser()
+	work_dir = os.path.dirname(os.path.abspath(__file__))
+	config_file_path = os.path.join(work_dir,'config.ini')
+	cf.read(config_file_path)
+		
 	crawl_slave = CrawlSlave()
-	crawl_slave.run()
+	crawl_slave.run(cf)
