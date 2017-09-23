@@ -84,7 +84,7 @@ class topic:
 		data = None
 		if len(self.topics) > self.num_visited_pages:
 			data = self.topics[self.num_visited_pages:self.num_visited_pages+10]
-		self.num_visited_pages += 10
+			self.num_visited_pages += 10
 		return data
 
 	def receive_work_result(self, result):
