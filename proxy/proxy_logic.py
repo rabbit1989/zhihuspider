@@ -43,6 +43,7 @@ class proxy_logic:
 
 	def delete_proxy(self, proxy_url):
 		if self.unique_proxies['good'].has_key(proxy_url):
+			logging.info('proxy logic: delete bad proxy: %s', proxy_url)
 			del self.unique_proxies['good'][proxy_url]
 
 	def load_proxy_data(self):
@@ -87,7 +88,7 @@ class proxy_logic:
 			logging.info('do not find any new proxy, sleep for a while before next fetch')
 			self.can_fetch_proxies = False
 			def wait_time():
-				time.sleep(60)
+				time.sleep(180)
 				self.can_fetch_proxies = True
 			wait_thread = threading.Thread(target = wait_time)
 			wait_thread.start()

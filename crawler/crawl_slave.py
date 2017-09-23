@@ -19,6 +19,7 @@ class CrawlSlave(RPCClient):
 		self.logic = None
 		self.is_proxy_ok = False
 		self.need_proxy = None
+		self.cur_proxy = None
 
 	def update(self):
 		task = []
@@ -46,6 +47,10 @@ class CrawlSlave(RPCClient):
 		if self.need_proxy == True and self.is_proxy_ok == False:
 			logging.warn('waiting for good proxy')
 			self.clients[self.master_client_id].slave_need_proxy()
+			if self.cur_proxy is not None:
+				self.clients[self.master_client_id].remove_bad_proxy(self.cur_proxy['url'])
+				self.cur_proxy = None
+				
 			return False
 
 		if (self.need_proxy == False or self.is_proxy_ok == True) and self.task_queue.empty() == True:
@@ -91,6 +96,7 @@ class CrawlSlave(RPCClient):
 			opener = urllib2.build_opener(handler)
 			urllib2.install_opener(opener)
 			self.is_proxy_ok = True
+			self.cur_proxy = proxy
 
 if __name__ == '__main__':
 	config_path = sys.argv[1]

@@ -99,6 +99,11 @@ class CrawlMaster(RPCServer):
 	def slave_is_available(self, val):
 		self.slave_clients[self.cur_client_id] = val
 
+	@rpc_method
+	def remove_bad_proxy(self, proxy_url):
+		logging.info('crawl_master:: ask proxy manager to remove bad proxy %s', proxy_url)
+		self.clients[self.proxy_clients[0]].remove_bad_proxy(proxy_url)			
+
 if __name__ == '__main__':
 	work_dir = os.path.dirname(os.path.abspath(__file__))
 	config_file_path = os.path.join(work_dir,'config.ini')
