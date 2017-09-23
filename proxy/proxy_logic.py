@@ -4,7 +4,6 @@ import common.utils
 import threading
 import time
 import os
-import ConfigParser
 import logging
 import importlib
 import cPickle
@@ -30,28 +29,31 @@ def test_proxy(proxy_url, tp):
 
 
 class proxy_logic:
-	def __init__(self):
-		work_dir = os.path.dirname(os.path.abspath(__file__))
-		config_file_path = os.path.join(work_dir,'config.ini')
-		self.cf = ConfigParser.ConfigParser()
-		self.cf.read(config_file_path)
-		self.data_path = self.cf.get('proxy_logic', 'data_path')
+	def __init__(self, cf = None):
+		if cf:
+			self.cf = cf
+			self.data_path = cf.get('proxy_logic', 'data_path')
 		self.start_time = -1
 		self.unique_proxies = {'good':{}, 'checked':{}}
 		self.fetch_methods = []
 		self.proxies_unverified = []
 		self.num_received_results = 0
 		self.num_checked_proxies = 0
+		self.can_fetch_proxies = True
 
 	def delete_proxy(self, proxy_url):
-		#TODO
-		pass
+		if self.unique_proxies['good'].has_key(proxy_url):
+			del self.unique_proxies['good'][proxy_url]
 
 	def load_proxy_data(self):
 		try:
 			f = open(self.data_path, 'rb')
 			self.unique_proxies = cPickle.load(f)
 			f.close()
+			for key, val in self.unique_proxies['good'].iteritems():
+				if type(val) != type({}):
+					self.unique_proxies['good'][key] = {'type':val}
+				self.unique_proxies['good'][key]['used'] = False
 		except Exception, e:
 			logging.fatal(e)
 			self.unique_proxies = {'good':{}, 'checked':{}}
@@ -81,6 +83,14 @@ class proxy_logic:
 				self.proxies_unverified.append(proxy)
 				self.unique_proxies['checked'][proxy['url']] = proxy['type']
 		logging.info('fetch_new_proxies(): %d/%d proxies are unique', num_unique, len(proxy_list))
+		if num_unique == 0:
+			logging.info('do not find any new proxy, sleep for a while before next fetch')
+			self.can_fetch_proxies = False
+			def wait_time():
+				time.sleep(60)
+				self.can_fetch_proxies = True
+			wait_thread = threading.Thread(target = wait_time)
+			wait_thread.start()
 
 	def assign_works(self, ):
 		'''
@@ -89,8 +99,9 @@ class proxy_logic:
 		if self.start_time < 0:
 			self.start_time = time.time()
 
-		if len(self.proxies_unverified) < 5:
+		if len(self.proxies_unverified) < 5 and self.can_fetch_proxies == True:
 			self.fetch_new_proxies()
+
 		data = self.proxies_unverified[:5]
 		self.proxies_unverified = self.proxies_unverified[5:]
 		logging.info('proxy_logic: assign_works(): num of unverified proxies: %d ', len(self.proxies_unverified))
@@ -123,10 +134,16 @@ class proxy_logic:
 		#进到这里才算该任务完成了，更新计数器
 		self.num_checked_proxies += 5
 		for proxy in result:
-			self.unique_proxies['good'][proxy['url']] = proxy['type']		
+			self.unique_proxies['good'][proxy['url']] = {'type':proxy['type'], 'used':False}		
 		logging.info('process speed so far: check %.1f proxies/min; get %.1f good proxies/min; num of good proxies: %d', self.num_checked_proxies/(cur_time-self.start_time)*60, self.num_received_results/(cur_time-self.start_time)*60, len(self.unique_proxies['good']))
 
-
+	def get_good_proxy(self):
+		for key, val in self.unique_proxies['good'].iteritems():
+			if val['used'] == False:
+				val['used'] = True
+				return {'url':key, 'type':val['type']}
+		return None		
+		
 	def dump_period(self):
 		while True:
 			self.dump_proxy_data()

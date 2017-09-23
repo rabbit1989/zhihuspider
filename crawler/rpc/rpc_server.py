@@ -39,6 +39,7 @@ class RPCServer(ServerFactory):
 		'''
 			run函数是阻塞的，请在完成其他所有工作后再调用
 		'''
-		reactor.listenTCP(port, self)
-		reactor.run()
+		reactor.listenTCP(int(port), self)
+		if not reactor.running:
+			reactor.run()
 

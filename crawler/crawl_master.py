@@ -35,9 +35,8 @@ class CrawlMaster(RPCServer):
 			#将工作分配给空闲的slave
 			for free_slave in free_slaves:
 				task = self.logic.assign_works()
-				if task == None:
-					done = True
-					break
+				if task == None or len(task) == 0:
+					continue
 				self.slave_clients[free_slave] = False
 				self.clients[free_slave].do_task(task)
 		

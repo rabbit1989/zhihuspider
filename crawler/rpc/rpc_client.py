@@ -56,7 +56,8 @@ class RPCClient(ClientFactory):
 		'''
 			run函数是阻塞的，请在完成其他所有工作后再调用
 		'''
-		reactor.connectTCP(ip, port, self)
-		reactor.run()
+		reactor.connectTCP(ip, int(port), self)
+		if not reactor.running:
+			reactor.run()
 
 

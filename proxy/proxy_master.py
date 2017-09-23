@@ -13,6 +13,11 @@ import proxy_logic
 import crawler.crawl_master as crawl_master
 
 class ProxyProvider(RPCClient):
+
+	def __init__(self, proxy_logic):
+		RPCClient.__init__(self)
+		self.proxy_logic = proxy_logic
+
 	'''
 		与crawler master相连，响应crawler master的代理请求
 	'''
@@ -24,36 +29,33 @@ class ProxyProvider(RPCClient):
 
 	@rpc_method
 	def remove_bad_proxy(self, proxy_url):
-		pass
+		self.proxy_logic.delete_proxy(proxy_url)
 
 	@rpc_method
 	def get_avail_proxy(self,):
-		proxy_id = None
-		proxy = {}
-		for url, val in self.proxy_dict.iteritems():
-			if val['status'] == 'ok' and val['used'] == False:
-				proxy_id = url
-				break
-		if proxy_id is not None:
-			proxy = {'url':proxy_id, 'type':val['type']}
-			self.proxy_dict[proxy_id]['used'] = True
-		logging.info('get_avail_proxy() proxy: %s', repr(proxy))
-		self.cur_client.on_get_avail_proxy(proxy)
+		good_proxy = self.proxy_logic.get_good_proxy()
+		logging.info('get_avail_proxy() proxy: %s', repr(good_proxy))
+		if good_proxy is not None:
+			self.cur_client.on_get_avail_proxy(good_proxy)
+
 
 if __name__ == '__main__':
-	logic = proxy_logic.proxy_logic()
-#	proxy_provider = ProxyProvider(logic)
-#	thread_provider = threading.Thread(target = lambda : proxy_provider.run())
-#	thread_provider.start()
-	
 	work_dir = os.path.dirname(os.path.abspath(__file__))
-	config_file_path = os.path.join(work_dir,'config.ini')
+	config_file_path = os.path.join(work_dir,'master_config.ini')
 	cf = ConfigParser.ConfigParser()
 	cf.read(config_file_path)
+	ip = cf.get('crawl_slave', 'ip')
+	port = cf.get('crawl_slave', 'port')
+
+	logic = proxy_logic.proxy_logic(cf)
+#	thread_provider = threading.Thread(target = lambda : proxy_provider.start_rpc_client(ip, port))
+#	thread_provider.start()
+	
 	
 	proxy_master = crawl_master.CrawlMaster(logic)
-	proxy_master.run(cf)
-	
+#	proxy_master.run(cf)
+	thread_master = threading.Thread(target = lambda : proxy_master.run(cf))
+	thread_master.start()
 
-
-
+	proxy_provider = ProxyProvider(logic)
+	proxy_provider.start_rpc_client(ip, port)
