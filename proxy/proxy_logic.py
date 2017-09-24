@@ -39,7 +39,6 @@ class proxy_logic:
 		self.proxies_unverified = []
 		self.num_received_results = 0
 		self.num_checked_proxies = 0
-		self.can_fetch_proxies = True
 
 	def notify_proxy_bad(self, proxy_url):
 
@@ -90,21 +89,13 @@ class proxy_logic:
 		proxy_list = []
 		for fetch_method in self.fetch_methods:
 			proxy_list += fetch_method.fetch()
-		num_unique = 0
+		unique_list = []
 		for proxy in proxy_list:
 			if not self.unique_proxies['checked'].has_key(proxy['url']):
-				num_unique += 1
-				self.proxies_unverified.append(proxy)
+				unique_list.append(proxy)
 				self.unique_proxies['checked'][proxy['url']] = proxy['type']
-		logging.info('fetch_new_proxies(): %d/%d proxies are unique', num_unique, len(proxy_list))
-		if num_unique == 0:
-			logging.info('do not find any new proxy, sleep for a while before next fetch')
-			self.can_fetch_proxies = False
-			def wait_time():
-				time.sleep(180)
-				self.can_fetch_proxies = True
-			wait_thread = threading.Thread(target = wait_time)
-			wait_thread.start()
+		self.proxies_unverified += unique_list	
+		logging.info('fetch_new_proxies(): %d/%d proxies are unique', len(unique_list) , len(proxy_list))
 
 	def assign_works(self, ):
 		'''
@@ -112,9 +103,6 @@ class proxy_logic:
 		'''
 		if self.start_time < 0:
 			self.start_time = time.time()
-
-		if len(self.proxies_unverified) < 5 and self.can_fetch_proxies == True:
-			self.fetch_new_proxies()
 
 		data = self.proxies_unverified[:5]
 		self.proxies_unverified = self.proxies_unverified[5:]
@@ -169,7 +157,8 @@ class proxy_logic:
 		while True:
 			self.dump_proxy_data()
 			logging.info('period_op(): num of unused good proxies: %d', self.get_unused_good_proxies())
-			time.sleep(120)
+			self.fetch_new_proxies()
+			time.sleep(180)
 
 	def prepare_work(self, ):
 		'''
