@@ -100,9 +100,9 @@ class CrawlMaster(RPCServer):
 		self.slave_clients[self.cur_client_id] = val
 
 	@rpc_method
-	def remove_bad_proxy(self, proxy_url):
+	def notify_proxy_bad(self, proxy_url):
 		logging.info('crawl_master:: ask proxy manager to remove bad proxy %s', proxy_url)
-		self.clients[self.proxy_clients[0]].remove_bad_proxy(proxy_url)			
+		self.clients[self.proxy_clients[0]].notify_proxy_bad(proxy_url)
 
 if __name__ == '__main__':
 	work_dir = os.path.dirname(os.path.abspath(__file__))

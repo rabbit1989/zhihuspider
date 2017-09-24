@@ -28,8 +28,8 @@ class ProxyProvider(RPCClient):
 		self.clients[client_id].i_am_proxy()
 
 	@rpc_method
-	def remove_bad_proxy(self, proxy_url):
-		self.proxy_logic.delete_proxy(proxy_url)
+	def notify_proxy_bad(self, proxy_url):
+		self.proxy_logic.notify_proxy_bad(proxy_url)
 
 	@rpc_method
 	def get_avail_proxy(self,):
@@ -48,12 +48,8 @@ if __name__ == '__main__':
 	port = cf.get('crawl_slave', 'port')
 
 	logic = proxy_logic.proxy_logic(cf)
-#	thread_provider = threading.Thread(target = lambda : proxy_provider.start_rpc_client(ip, port))
-#	thread_provider.start()
-	
 	
 	proxy_master = crawl_master.CrawlMaster(logic)
-#	proxy_master.run(cf)
 	thread_master = threading.Thread(target = lambda : proxy_master.run(cf))
 	thread_master.start()
 

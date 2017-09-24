@@ -114,7 +114,7 @@ def get_soup_request(url):
 def get_response(url):
 	agent = consts.http_hds[random.randint(0,len(consts.http_hds)-1)]
 	req = urllib2.Request(url,headers=agent)
-	return urllib2.urlopen(req,timeout=15)
+	return urllib2.urlopen(req,timeout=20)
 
 
 def save_page(_id, page_text):

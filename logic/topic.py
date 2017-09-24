@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-def visit_page(topics, page_failed):
+def visit_page(topics):
 	output = {'org':[], 'expend':[]}
 	topic_failed = []
 	linkid_pattern = re.compile('/[0-9]+')
@@ -50,13 +50,7 @@ def visit_page(topics, page_failed):
 		except Exception, e:
 			traceback.print_exc()
 			logging.fatal(e)
-			if not page_failed.has_key(topic_id):
-				page_failed[topic_id] = 0
-			page_failed[topic_id]+=1
-			if page_failed[topic_id] < 3:
-				topic_failed.append(ele)
-			else:
-				logging.info('the spider has tried page %s 3 times, abandoned this page', topic_id)
+			topic_failed.append(ele)
 	return topic_failed, output
 
 class topic:
@@ -70,7 +64,6 @@ class topic:
 		self.num_visited_pages = 0
 		self.num_received_results = 0
 		self.start_time = -1
-		self.page_failed = {}
 		#只在crawl_master端使用
 		self.unique_topics = {}
 
@@ -117,7 +110,7 @@ class topic:
 			called on crawl slave
 		'''
 		logging.info('num of input: %d', len(_input))
-		input_unfinished, output = visit_page(_input, self.page_failed)
+		input_unfinished, output = visit_page(_input)
 		logging.info('%d/%d success', len(output['org']), len(_input))
 		return input_unfinished, output
 

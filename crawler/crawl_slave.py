@@ -23,6 +23,7 @@ class CrawlSlave(RPCClient):
 
 	def update(self):
 		task = []
+		no_page_time = -1
 		while True:
 			time.sleep(3)
 			if self.can_do_task() == True:	
@@ -31,9 +32,16 @@ class CrawlSlave(RPCClient):
 				if len(task_unfinished) > 0:
 					self.task_queue.put(task_unfinished)
 
-				if float(len(task_unfinished))/len(task) > 0.5:
-					logging.info('slave:update(), proxy is not good, want change a good one')
-					self.is_proxy_ok = False
+				if len(task_unfinished) == len(task):
+					if no_page_time < 0:
+						no_page_time = time.time()
+					if time.time() - no_page_time > 300:
+						logging.info('slave:update(), proxy is not good, change a good one')
+						self.is_proxy_ok = False
+						no_page_time = -1
+				else:
+					no_page_time = -1
+				
 				self.clients[self.master_client_id].on_do_task(output)
 
 	def can_do_task(self):
@@ -48,7 +56,7 @@ class CrawlSlave(RPCClient):
 			logging.warn('waiting for good proxy')
 			self.clients[self.master_client_id].slave_need_proxy()
 			if self.cur_proxy is not None:
-				self.clients[self.master_client_id].remove_bad_proxy(self.cur_proxy['url'])
+				self.clients[self.master_client_id].notify_proxy_bad(self.cur_proxy['url'])
 				self.cur_proxy = None
 				
 			return False

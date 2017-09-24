@@ -1,43 +1,43 @@
 set PYTHONPATH=%PYTHONPATH%;../;./crawler/;./logic/;
-start python crawler\crawl_slave.py log\slave1
+start python crawler\crawl_slave.py crawler\config.ini log\slave1
 ping localhost -n 1
-start python crawler\crawl_slave.py log\slave2
+start python crawler\crawl_slave.py crawler\config.ini log\slave21
 ping localhost -n 1
-start python crawler\crawl_slave.py log\slave3
+start python crawler\crawl_slave.py crawler\config.ini log\slave22
 ping localhost -n 1
-start python crawler\crawl_slave.py log\slave4
+start python crawler\crawl_slave.py  crawler\config.ini log\slave4
 ping localhost -n 1
-start python crawler\crawl_slave.py log\slave5
+start python crawler\crawl_slave.py crawler\config.ini  log\slave5
 ping localhost -n 1
-start python crawler\crawl_slave.py log\slave6
+start python crawler\crawl_slave.py  crawler\config.ini log\slave6
 ping localhost -n 1
-start python crawler\crawl_slave.py log\slave7
+start python crawler\crawl_slave.py crawler\config.ini  log\slave7
 ping localhost -n 1
-start python crawler\crawl_slave.py log\slave8
+start python crawler\crawl_slave.py  crawler\config.ini log\slave8
 ping localhost -n 1
-start python crawler\crawl_slave.py log\slave9
+start python crawler\crawl_slave.py crawler\config.ini  log\slave9
 ping localhost -n 1
-start python crawler\crawl_slave.py log\slave10
+start python crawler\crawl_slave.py  crawler\config.ini log\slave10
 ping localhost -n 1
-start python crawler\crawl_slave.py log\slave1
-ping localhost -n 1
-start python crawler\crawl_slave.py log\slave12
-ping localhost -n 1
-start python crawler\crawl_slave.py log\slave13
-ping localhost -n 1
-start python crawler\crawl_slave.py log\slave14
-ping localhost -n 1
-start python crawler\crawl_slave.py log\slave15
-ping localhost -n 1
-start python crawler\crawl_slave.py log\slave16
-ping localhost -n 1
-start python crawler\crawl_slave.py log\slave17
-ping localhost -n 1
-start python crawler\crawl_slave.py log\slave18
-ping localhost -n 1
-start python crawler\crawl_slave.py log\slave19
-ping localhost -n 1
-start python crawler\crawl_slave.py log\slave20
+rem start python crawler\crawl_slave.py crawler\config.ini  log\slave1
+rem ping localhost -n 1
+rem start python crawler\crawl_slave.py crawler\config.ini  log\slave12
+rem ping localhost -n 1
+rem start python crawler\crawl_slave.py  crawler\config.ini log\slave13
+rem ping localhost -n 1
+rem start python crawler\crawl_slave.py  crawler\config.ini log\slave14
+rem ping localhost -n 1
+rem start python crawler\crawl_slave.py crawler\config.ini  log\slave15
+rem ping localhost -n 1
+rem start python crawler\crawl_slave.py  crawler\config.ini log\slave16
+rem ping localhost -n 1
+rem start python crawler\crawl_slave.py crawler\config.ini  log\slave17
+rem ping localhost -n 1
+rem start python crawler\crawl_slave.py  crawler\config.ini log\slave18
+rem ping localhost -n 1
+rem start python crawler\crawl_slave.py  crawler\config.ini log\slave19
+rem ping localhost -n 1
+rem start python crawler\crawl_slave.py crawler\config.ini  log\slave20
 
 
 

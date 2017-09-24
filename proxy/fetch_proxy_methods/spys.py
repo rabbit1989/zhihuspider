@@ -24,7 +24,7 @@ def fetch():
 		url = 'http://spys.one/en/https-ssl-proxy/'
 		post_data = {'xpp':'5', 'xf1':'0', 'xf4':'0', 'xf5':'0'}
 		r = requests.post(url, data = post_data)
-		f = open('test.html', 'wb')
+		f = open('proxy\\fetch_proxy_methods\\test.html', 'wb')
 		f.write(r.text)
 		f.close()
 		work_dir = os.path.dirname(os.path.abspath(__file__))

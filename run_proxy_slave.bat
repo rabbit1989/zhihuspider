@@ -1,6 +1,4 @@
 set PYTHONPATH=%PYTHONPATH%;../;./crawler/;./logic/;./proxy;
-start python proxy\proxy_slave.py log\proxy_slave1
-start python proxy\proxy_slave.py log\proxy_slave2
-start python proxy\proxy_slave.py log\proxy_slave3
-start python proxy\proxy_slave.py log\proxy_slave4
-start python proxy\proxy_slave.py log\proxy_slave5
+start python crawler\crawl_slave.py proxy\slave_config.ini log\proxy_slave1
+start python crawler\crawl_slave.py proxy\slave_config.ini log\proxy_slave2
+rem start python crawler\crawl_slave.py proxy\slave_config.ini log\proxy_slave3

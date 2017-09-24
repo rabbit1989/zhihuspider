@@ -41,10 +41,23 @@ class proxy_logic:
 		self.num_checked_proxies = 0
 		self.can_fetch_proxies = True
 
-	def delete_proxy(self, proxy_url):
-		if self.unique_proxies['good'].has_key(proxy_url):
-			logging.info('proxy logic: delete bad proxy: %s', proxy_url)
-			del self.unique_proxies['good'][proxy_url]
+	def notify_proxy_bad(self, proxy_url):
+
+		def test():
+			try:
+				if test_proxy(proxy_url, 'https') == 'ok':
+					logging.info('notify_proxy_bad(): proxy %s is still good, reuse it', proxy_url)
+					self.unique_proxies['good'][proxy_url]['used'] = False
+				else:
+					logging.info('notify_proxy_bad(): proxy %s is bad, remove it', proxy_url)
+					del self.unique_proxies['good'][proxy_url]
+			except Exception, e:
+				logging.fatal(e)
+				logging.info('notify_proxy_bad(): proxy %s is bad, remove it', proxy_url)
+				del self.unique_proxies['good'][proxy_url]
+			
+		thread = threading.Thread(target = test)
+		thread.start()
 
 	def load_proxy_data(self):
 		try:
@@ -144,10 +157,18 @@ class proxy_logic:
 				val['used'] = True
 				return {'url':key, 'type':val['type']}
 		return None		
-		
-	def dump_period(self):
+	
+	def get_unused_good_proxies(self):
+		ret = 0
+		for key, val in self.unique_proxies['good'].iteritems():
+			if val['used'] == False:
+				ret += 1
+		return ret
+
+	def period_op(self):
 		while True:
 			self.dump_proxy_data()
+			logging.info('period_op(): num of unused good proxies: %d', self.get_unused_good_proxies())
 			time.sleep(120)
 
 	def prepare_work(self, ):
@@ -157,8 +178,8 @@ class proxy_logic:
 		logging.info('proxy logic: prepare work')
 		self.load_proxy_data()
 		self.load_fetch_method()
-		#启动周期dump proxy 的线程
-		thread = threading.Thread(target=self.dump_period)
+		#启动周期执行的线程
+		thread = threading.Thread(target=self.period_op)
 		thread.start()
 
 if __name__ == '__main__':
