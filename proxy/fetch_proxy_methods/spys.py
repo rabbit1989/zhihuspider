@@ -23,7 +23,7 @@ def fetch():
 		#如果不用浏览器内核渲染网页，代理端口号出不来
 		url = 'http://spys.one/en/https-ssl-proxy/'
 		post_data = {'xpp':'5', 'xf1':'0', 'xf4':'0', 'xf5':'0'}
-		r = requests.post(url, data = post_data)
+		r = requests.post(url, data = post_data, timeout=20)
 		f = open('proxy\\fetch_proxy_methods\\test.html', 'wb')
 		f.write(r.text)
 		f.close()

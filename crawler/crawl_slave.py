@@ -35,7 +35,7 @@ class CrawlSlave(RPCClient):
 				if len(task_unfinished) == len(task):
 					if no_page_time < 0:
 						no_page_time = time.time()
-					if time.time() - no_page_time > 300:
+					if time.time() - no_page_time > 200:
 						logging.info('slave:update(), proxy is not good, change a good one')
 						self.is_proxy_ok = False
 						no_page_time = -1
