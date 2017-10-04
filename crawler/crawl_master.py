@@ -43,7 +43,6 @@ class CrawlMaster(RPCServer):
 		logging.info('all works has been assigned!!')
 
 	def run(self, cf):
-		common.utils.init_logger(cf.get('log', 'crawl_master_path'))
 		if self.logic is None:
 			self.logic = common.utils.load_logic_module(cf.get('crawl_master', 'logic_name'))
 		port = int(cf.get('crawl_master', 'port'))
@@ -109,5 +108,6 @@ if __name__ == '__main__':
 	config_file_path = os.path.join(work_dir,'config.ini')
 	cf = ConfigParser.ConfigParser()
 	cf.read(config_file_path)
+	common.utils.init_logger(cf.get('log', 'crawl_master_path'))	
 	crawl_master = CrawlMaster()		
 	crawl_master.run(cf)

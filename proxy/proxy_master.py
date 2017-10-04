@@ -40,6 +40,7 @@ class ProxyProvider(RPCClient):
 
 
 if __name__ == '__main__':
+	common.utils.init_logger('log/proxy_mgr')
 	work_dir = os.path.dirname(os.path.abspath(__file__))
 	config_file_path = os.path.join(work_dir,'master_config.ini')
 	cf = ConfigParser.ConfigParser()

@@ -17,13 +17,13 @@ class CrawlSlave(RPCClient):
 		self.master_client_id = None
 		self.task_queue = Queue.Queue()
 		self.logic = None
-		self.is_proxy_ok = False
+		self.is_proxy_ok = False	#代理是否可用
 		self.need_proxy = None
 		self.cur_proxy = None
 
 	def update(self):
 		task = []
-		no_page_time = -1
+		num_con_failed = 0
 		while True:
 			time.sleep(3)
 			if self.can_do_task() == True:	
@@ -31,16 +31,16 @@ class CrawlSlave(RPCClient):
 				task_unfinished, output = self.logic.on_assign_works(task)
 				if len(task_unfinished) > 0:
 					self.task_queue.put(task_unfinished)
-
-				if len(task_unfinished) == len(task):
-					if no_page_time < 0:
-						no_page_time = time.time()
-					if time.time() - no_page_time > 200:
+				logging.info('num unfinished: %d; num task: %d', len(task_unfinished), len(task))
+				if len(task_unfinished) != len(task):
+					num_con_failed = 0
+				else:
+					#连续失败过多可能是因为代理不可用
+					num_con_failed += len(task)
+					if num_con_failed > 10:
 						logging.info('slave:update(), proxy is not good, change a good one')
 						self.is_proxy_ok = False
-						no_page_time = -1
-				else:
-					no_page_time = -1
+						num_con_failed = 0
 				
 				self.clients[self.master_client_id].on_do_task(output)
 
