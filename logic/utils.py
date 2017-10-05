@@ -4,6 +4,7 @@ import logging
 import time
 import random
 import urllib2
+import httplib
 import copy
 import sys
 import common.consts as consts
@@ -112,10 +113,17 @@ def get_soup_request(url):
 	return BeautifulSoup(plain_text, 'lxml')
 
 def get_response(url):
-	agent = consts.http_hds[random.randint(0,len(consts.http_hds)-1)]
-	req = urllib2.Request(url,headers=agent)
-	return urllib2.urlopen(req,timeout=20)
-
+	try:
+		resp = None
+		html_text = None
+		resp = urllib2.urlopen(url, timeout = 20)
+		logging.info('resp code: '+ str(resp.getcode()) + ' actual_url:' + resp.geturl())
+		html_text = resp.read()
+	except (urllib2.URLError, httplib.HTTPException, IOError) as e:
+		logging.fatal(e)
+	finally:
+		return resp, html_text
+	
 
 def save_page(_id, page_text):
 	f = open('err_pages/' + str(_id) + '.html', 'wb')
