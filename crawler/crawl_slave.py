@@ -37,7 +37,7 @@ class CrawlSlave(RPCClient):
 				else:
 					#连续失败过多可能是因为代理不可用
 					num_con_failed += len(task)
-					if num_con_failed > 10:
+					if num_con_failed >= 10:
 						logging.info('slave:update(), proxy is not good, change a good one')
 						self.is_proxy_ok = False
 						num_con_failed = 0
