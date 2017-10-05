@@ -17,6 +17,8 @@ from bs4 import BeautifulSoup
 reload(sys)
 sys.setdefaultencoding('utf8')
 
+failed_topics = {}
+
 def visit_page(topics):
 	output = {'org':[], 'expend':[]}
 	topic_failed = []
@@ -27,14 +29,14 @@ def visit_page(topics):
 		try:
 			cur_time = utils.get_sql_time()
 			url = 'https://www.zhihu.com/topic/' + topic_id
-			resp = utils.get_response(url)
-			if resp.getcode() != 200:
-				raise Exception('response code is abnormal')
-			
+			resp, html_text = utils.get_response(url)
+			if resp == None or html_text == None:
+				raise Exception('urllib2 error')
+
 			actual_url = resp.geturl()
 			actual_linkid = re.search(linkid_pattern, actual_url).group()[1:]
 
-			soup = BeautifulSoup(resp.read(), 'lxml')
+			soup = BeautifulSoup(html_text, 'lxml')
 			topic_name = crawl_rule.topic_name(soup)
 			topic_focus = crawl_rule.topic_focus(soup, topic_id)
 			if topic_name is None or topic_focus is None:
@@ -48,9 +50,15 @@ def visit_page(topics):
 			soup.decompose()
 			gc.collect()
 		except Exception, e:
-			traceback.print_exc()
 			logging.fatal(e)
-			topic_failed.append(ele)
+			if not failed_topics.has_key(topic_id):
+				failed_topics[topic_id] = 0
+			failed_topics[topic_id] += 1
+			if failed_topics[topic_id] < 5:
+				topic_failed.append(ele)
+			else:
+				logging.info('topic %s failed too many times, abandened', topic_id)
+
 	return topic_failed, output
 
 class topic:
@@ -89,8 +97,8 @@ class topic:
 		cur_time = time.time()
 		for ele in result['org']:
 			try:
-				sql_str = 'INSERT IGNORE INTO TOPIC (LINK_ID, NAME, FOCUS, LAST_VISIT, ADD_TIME) VALUES (%s, %s, %s, %s, %s)'
-				self.db_conn.execute(sql_str, [(ele[0], ele[1]['name'], ele[1]['focus'], ele[1]['last_visit'], ele[1]['add_time'])])
+				sql_str = 'INSERT IGNORE INTO topic (link_id, name, focus, last_visit, add_time) VALUES (%s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE focus = %s, last_visit = %s'
+				self.db_conn.execute(sql_str, [(ele[0], ele[1]['name'], ele[1]['focus'], ele[1]['last_visit'], ele[1]['add_time'], ele[1]['focus'], ele[1]['last_visit'])])
 			except Exception, e:
 				traceback.print_exc()
 				logging.fatal(e)
@@ -112,7 +120,7 @@ class topic:
 		logging.info('num of input: %d', len(_input))
 		input_unfinished, output = visit_page(_input)
 		logging.info('%d/%d success', len(output['org']), len(_input))
-		return input_unfinished, output
+		return input_unfinished, output, 
 
 	def prepare_work(self, ):
 		'''
@@ -138,7 +146,7 @@ class topic:
 		self.topics = [(key, val) for key, val in self.topics.iteritems()]
 
 if __name__ == '__main__':
-#	common.utils.init_logger('log/test_topic_log')
+	common.utils.init_logger('log/test_topic_log')
 	spider = topic()
 	spider.prepare_work()
 	for i in xrange(10):
