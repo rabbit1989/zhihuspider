@@ -5,6 +5,7 @@ import time
 import ConfigParser
 import common.utils
 import os
+import sys
 from rpc.rpc_server import RPCServer
 from rpc.rpc_protocol import rpc_method
 
@@ -44,8 +45,8 @@ class CrawlMaster(RPCServer):
 
 	def run(self, cf):
 		if self.logic is None:
-			self.logic = common.utils.load_logic_module(cf.get('crawl_master', 'logic_name'))
-		port = int(cf.get('crawl_master', 'port'))
+			self.logic = common.utils.load_logic_module(cf['logic_name'])
+		port = int(cf['listen_port'])
 		thread = threading.Thread(target=self.update)
 		thread.start()
 		self.start_rpc_server(port)
@@ -104,10 +105,14 @@ class CrawlMaster(RPCServer):
 		self.clients[self.proxy_clients[0]].notify_proxy_bad(proxy_url)
 
 if __name__ == '__main__':
-	work_dir = os.path.dirname(os.path.abspath(__file__))
-	config_file_path = os.path.join(work_dir,'config.ini')
+	if len(sys.argv) != 2:
+		print u'请输入配置文件路径'
+		exit(-1)
+
 	cf = ConfigParser.ConfigParser()
-	cf.read(config_file_path)
-	common.utils.init_logger(cf.get('log', 'crawl_master_path'))	
-	crawl_master = CrawlMaster()		
-	crawl_master.run(cf)
+	cf.read(sys.argv[1])
+	common.utils.init_logger(cf.get('crawler', 'log_path'))	
+	crawl_master = CrawlMaster()
+	logic_name = cf.get('crawler', 'logic_name')
+	listen_port = cf.get('crawler', 'master_port')
+	crawl_master.run({'listen_port':listen_port, 'logic_name':logic_name})

@@ -69,10 +69,10 @@ class CrawlSlave(RPCClient):
 		return True
 
 	def run(self, cf):
-		self.logic = common.utils.load_logic_module(cf.get('crawl_slave', 'logic_name'))
-		self.need_proxy = cf.get('crawl_slave', 'need_proxy') == 'True'
-		master_ip = cf.get('crawl_slave', 'ip')
-		master_port = cf.get('crawl_slave', 'port')
+		self.logic = common.utils.load_logic_module(cf['logic_name'])
+		self.need_proxy = cf['need_proxy']
+		master_ip = cf['connect_ip']
+		master_port = cf['connect_port']
 		thread = threading.Thread(target = self.update)
 		thread.start()
 		self.start_rpc_client(master_ip, int(master_port))
@@ -112,7 +112,12 @@ if __name__ == '__main__':
 	common.utils.init_logger(log_path)
 	
 	cf = ConfigParser.ConfigParser()
+	print config_path
 	cf.read(config_path)
-		
+	logic_name = cf.get('crawler', 'logic_name')
+	connect_ip = cf.get('crawler', 'master_ip')
+	connect_port = cf.get('crawler', 'master_port')
+	need_proxy = cf.get('crawler', 'need_proxy') == 'True'	
+	
 	crawl_slave = CrawlSlave()
-	crawl_slave.run(cf)
+	crawl_slave.run({'logic_name':logic_name, 'connect_port':connect_port, 'connect_ip':connect_ip, 'need_proxy':need_proxy})

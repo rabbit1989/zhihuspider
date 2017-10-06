@@ -42,17 +42,17 @@ class ProxyProvider(RPCClient):
 if __name__ == '__main__':
 	common.utils.init_logger('log/proxy_mgr')
 	work_dir = os.path.dirname(os.path.abspath(__file__))
-	config_file_path = os.path.join(work_dir,'master_config.ini')
+	config_path = os.path.join(work_dir,'config.ini')
 	cf = ConfigParser.ConfigParser()
-	cf.read(config_file_path)
-	ip = cf.get('crawl_slave', 'ip')
-	port = cf.get('crawl_slave', 'port')
+	cf.read(config_path)
 
 	logic = proxy_logic.proxy_logic(cf)
 	
 	proxy_master = crawl_master.CrawlMaster(logic)
-	thread_master = threading.Thread(target = lambda : proxy_master.run(cf))
-	thread_master.start()
+	thread = threading.Thread(target = lambda : proxy_master.run({'listen_port':cf.get('proxy_master', 'listen_port')}))
+	thread.start()
 
 	proxy_provider = ProxyProvider(logic)
-	proxy_provider.start_rpc_client(ip, port)
+	connect_ip = cf.get('proxy_master', 'connect_ip')
+	connect_port = cf.get('proxy_master', 'connect_port')
+	proxy_provider.start_rpc_client(connect_ip, connect_port)

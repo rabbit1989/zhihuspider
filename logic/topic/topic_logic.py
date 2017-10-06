@@ -61,7 +61,7 @@ def visit_page(topics):
 
 	return topic_failed, output
 
-class topic:
+class topic_logic:
 	def __init__(self):
 		work_dir = os.path.dirname(os.path.abspath(__file__))
 		config_file_path = os.path.join(work_dir,'config.ini')
@@ -147,7 +147,7 @@ class topic:
 
 if __name__ == '__main__':
 	common.utils.init_logger('log/test_topic_log')
-	spider = topic()
+	spider = topic_logic()
 	spider.prepare_work()
 	for i in xrange(10):
 		data = spider.assign_works()
