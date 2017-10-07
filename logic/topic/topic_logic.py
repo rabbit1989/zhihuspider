@@ -1,6 +1,7 @@
 #coding=utf-8
 import sys
-import db
+import common.db as db
+import logic.logic_base as logic_base
 import utils
 import logging
 import ConfigParser
@@ -27,9 +28,9 @@ def visit_page(topics):
 		topic_id = ele[0]
 		val = ele[1]
 		try:
-			cur_time = utils.get_sql_time()
+			cur_time = common.utils.get_sql_time()
 			url = 'https://www.zhihu.com/topic/' + topic_id
-			resp, html_text = utils.get_response(url)
+			resp, html_text = common.utils.get_response(url)
 			if resp == None or html_text == None:
 				raise Exception('urllib2 error')
 
@@ -61,8 +62,9 @@ def visit_page(topics):
 
 	return topic_failed, output
 
-class topic_logic:
+class topic_logic(logic_base.logic_base):
 	def __init__(self):
+		logic_base.logic_base.__init__(self)
 		work_dir = os.path.dirname(os.path.abspath(__file__))
 		config_file_path = os.path.join(work_dir,'config.ini')
 		self.cf = ConfigParser.ConfigParser()

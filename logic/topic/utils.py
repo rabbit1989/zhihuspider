@@ -8,10 +8,8 @@ import httplib
 import copy
 import sys
 import common.consts as consts
+import common.utls
 from bs4 import BeautifulSoup
-
-def get_sql_time():
-	return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def get_links(bs, rule):
 	nodes = rule(bs)
@@ -80,7 +78,7 @@ def merge_dict(data_list):
 	return d
 
 def add_new_topics(topic_links, topic_list):
-	cur_time = get_sql_time()
+	cur_time = common.utils.get_sql_time()
 	for topic_link in topic_links:
 		linkid = copy.copy(topic_link[topic_link.rfind('/')+1:])
 		topic_list.append((linkid, {'name':None, 'focus':None, 'last_visit':cur_time, 'add_time':cur_time, 'expend':False})) 
@@ -112,19 +110,7 @@ def get_soup_request(url):
 	plain_text = urllib2.urlopen(req,timeout=7).read()
 	return BeautifulSoup(plain_text, 'lxml')
 
-def get_response(url):
-	try:
-		resp = None
-		html_text = None
-		resp = urllib2.urlopen(url, timeout = 20)
-		logging.info('resp code: '+ str(resp.getcode()) + ' actual_url:' + resp.geturl())
-		html_text = resp.read()
-	except (urllib2.URLError, httplib.HTTPException, IOError) as e:
-		logging.fatal(e)
-	finally:
-		return resp, html_text
 	
-
 def save_page(_id, page_text):
 	f = open('err_pages/' + str(_id) + '.html', 'wb')
 	f.weite(page_text)

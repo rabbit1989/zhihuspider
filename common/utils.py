@@ -1,5 +1,7 @@
 #coding=utf-8
 import logging
+import urllib2
+from datetime import datetime
 
 def init_logger(log_path):
 	logging.basicConfig(level=logging.INFO, 
@@ -27,3 +29,18 @@ def net_connected(func):
 		else:
 			func(*args, **kwargs)
 	return wrapper
+
+def get_sql_time():
+	return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+def get_response(url):
+	try:
+		resp = None
+		html_text = None
+		resp = urllib2.urlopen(url, timeout = 20)
+		logging.info('resp code: '+ str(resp.getcode()) + ' actual_url:' + resp.geturl())
+		html_text = resp.read()
+	except (urllib2.URLError, httplib.HTTPException, IOError) as e:
+		logging.fatal(e)
+	finally:
+		return resp, html_text

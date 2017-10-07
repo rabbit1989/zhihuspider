@@ -105,6 +105,7 @@ class CrawlSlave(RPCClient):
 			urllib2.install_opener(opener)
 			self.is_proxy_ok = True
 			self.cur_proxy = proxy
+			self.logic.set_proxy({proxy['type']: proxy['url']})
 
 if __name__ == '__main__':
 	config_path = sys.argv[1]

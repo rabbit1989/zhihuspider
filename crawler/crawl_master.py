@@ -25,7 +25,7 @@ class CrawlMaster(RPCServer):
 		self.logic.prepare_work()
 		done = False
 		while done is False:
-			time.sleep(5)
+			time.sleep(2)
 			#找到空闲的slave
 			free_slaves = []
 			for slave_client, val in self.slave_clients.iteritems():
