@@ -1,6 +1,7 @@
 #coding=utf-8
 import sys
 import common.db as db
+import MySQLdb
 import logic.logic_base as logic_base
 import logging
 import ConfigParser
@@ -15,6 +16,7 @@ import re
 import requests
 import json
 import urllib2
+import time
 from bs4 import BeautifulSoup
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -46,8 +48,7 @@ def visit_topic(l, stp_time, proxy):
 			cur_time = time.time()
 			past_time = 0
 			while past_time <= stp_time:
-				logging.info('proxy:' + str(proxy))
-				resp=requests.post(url,headers = headers,data={'start':0,'offset': cur_time-past_time}, proxies=proxy)
+				resp=requests.post(url,headers = headers,data={'start':0,'offset': cur_time-past_time}, proxies=proxy, timeout = 20)
 				msg_dict = json.loads(resp.text)
 				logging.info('response msg num: %d', msg_dict['msg'][0])
 				soup = BeautifulSoup(msg_dict['msg'][1], 'lxml')
@@ -60,7 +61,7 @@ def visit_topic(l, stp_time, proxy):
 				if not unique_questions.has_key(link):
 					unique_questions[link] = True
 					s = list(q.find('h2').strings)
-					logging.info(s[1] + '  ' + s[3]	+ 'link:' + link) 
+			#		logging.info(s[1] + '  ' + s[3]	+ 'link:' + link) 
 					num_unique += 1
 					output.append({'type':'topic', 'data':link})
 			logging.info('from topic %s find %d questions, %d are unique', topic, len(qlist), num_unique)
@@ -91,11 +92,14 @@ def visit_question(l):
 			output.append({'type':'question', 'data':q})
 			logging.info('%s 关注:%s; 浏览:%s; 回答数:%s' %(q['name'], q['focus'], q['view'], q['ans_num']))
 		except Exception, e:
+			logging.fatal(e)
 			if not failed_question.has_key(question_id):
 				failed_question[question_id] = 0
 			failed_question[question_id] += 1
 			if failed_question[question_id] < 5:
 				failed_input.append(ele)
+			else:
+				failed_question[question_id] = 0
 
 	return failed_input, output
 
@@ -118,8 +122,8 @@ class question_logic(logic_base.logic_base):
 		data = []
 		if len(self.unvisit_topics) > 0:
 			tp = 'topic'
-			data = self.unvisit_topics[:5]
-			self.unvisit_topics = self.unvisit_topics[5:]
+			data = self.unvisit_topics[:3]
+			self.unvisit_topics = self.unvisit_topics[3:]
 			logging.info('num of unvisited topics: %d', len(self.unvisit_topics))
 			if self.start_time_topic < 0:
 				self.start_time_topic = time.time()
@@ -131,10 +135,10 @@ class question_logic(logic_base.logic_base):
 				end = len(self.unvisit_questions)
 			data = self.unvisit_questions[start:end]
 			self.num_visited_questions = end
-			logging.info('num of unvisited questions: %d', len(self.unvisit_questions)-self.num_visited_questions)
+			logging.info('num of total questions: %d; num of visited questions: %d', len(self.unvisit_questions), self.num_visited_questions)
 			if self.start_time_question < 0:
 				self.start_time_question = time.time()
-		else:
+		elif self.num_visited_questions != 0 and len(self.unvisit_questions) <= self.num_visited_questions:
 			#数据全部访问完了，开始第二遍
 			self.prepare_work()
 		
@@ -155,13 +159,13 @@ class question_logic(logic_base.logic_base):
 					self.unvisit_questions.append(data)
 			elif tp == 'question':
 				cur_time = common.utils.get_sql_time()
+				cur_time_sec = int(time.time())
 				try:
-					sql_str = 'INSERT IGNORE INTO question (question_id, name, focus, view, answer_number, last_visit, create_time, focus_inc, view_inc, answer_num_inc)\
-					 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE last_visit = %s, focus_inc = %s-focus, view_inc = %s-view, answer_num_inc = %s-answer_number'
-					self.db_conn.execute(sql_str, [(data['id'], data['name'], data['focus'], data['view'], data['ans_num'], cur_time, cur_time, '0', '0', '0', cur_time, data['focus'], data['view'], data['ans_num'])])
-				except Exception, e:
-					traceback.print_exc()
-					logging.fatal(e)
+					sql_str = 'INSERT IGNORE INTO question (question_id, name, focus, view, answer_number, last_visit, last_visit_sec, create_time, visit_interval, focus_inc, view_inc, answer_num_inc)\
+					 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE last_visit = %s, visit_interval = %s-last_visit_sec, last_visit_sec = %s, focus_inc = %s-focus, view_inc = %s-view, answer_num_inc = %s-answer_number, focus = %s, view = %s, answer_number = %s'
+					self.db_conn.execute(sql_str, [(data['id'], data['name'], data['focus'], data['view'], data['ans_num'], cur_time, str(cur_time_sec), cur_time, '0', '0', '0', '0', cur_time, str(cur_time_sec), str(cur_time_sec), data['focus'], data['view'], data['ans_num'], data['focus'], data['view'], data['ans_num'])])
+				except MySQLdb.Error, e:
+					self.db_conn.process_exception(e)
 		logging.info('receive_work_result: %d results', len(result))
 		
 	def on_assign_works(self, _input):
@@ -171,11 +175,15 @@ class question_logic(logic_base.logic_base):
 		logging.info('num of input: %d', len(_input))
 		input_unfinished = []
 		output = []	
-		if len(_input) > 0:
-			if _input[0]['type'] == 'topic':
-				input_unfinished, output = visit_topic(_input, self.quest_fetch_time, self.proxy)
-			elif _input[0]['type'] == 'question':
-				input_unfinished, output = visit_question(_input)
+		for ele in _input:
+			unfinish = []
+			out = []
+			if ele['type'] == 'topic':
+				unfinish, out = visit_topic([ele], self.quest_fetch_time, self.proxy)
+			elif ele['type'] == 'question':
+				unfinish, out = visit_question([ele])
+			input_unfinished += unfinish
+			output += out
 		logging.info('%d/%d success', len(_input) - len(input_unfinished), len(_input))
 		return input_unfinished, output
 
@@ -198,9 +206,8 @@ class question_logic(logic_base.logic_base):
 			self.db_conn.execute(sql_str)
 			res = self.db_conn.fetch_results()
 			self.unvisit_topics = [row[0] for row in res]
-		except Exception, e:
-			traceback.print_exc()
-			logging.fatal(e)
+		except MySQLdb.Error, e:
+			self.db_conn.process_exception(e)
 
 if __name__ == '__main__':
 	common.utils.init_logger('log/test_question_log')

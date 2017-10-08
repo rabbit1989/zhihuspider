@@ -24,13 +24,13 @@ class CrawlSlave(RPCClient):
 	def update(self):
 		task = []
 		num_con_failed = 0
+		task_unfinished = []
 		while True:
-			time.sleep(3)
+			time.sleep(1)
 			if self.can_do_task() == True:	
 				task = self.task_queue.get(block = False)
+				task += task_unfinished
 				task_unfinished, output = self.logic.on_assign_works(task)
-				if len(task_unfinished) > 0:
-					self.task_queue.put(task_unfinished)
 				logging.info('num unfinished: %d; num task: %d', len(task_unfinished), len(task))
 				if len(task_unfinished) != len(task):
 					num_con_failed = 0

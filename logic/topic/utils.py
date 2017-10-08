@@ -8,7 +8,7 @@ import httplib
 import copy
 import sys
 import common.consts as consts
-import common.utls
+import common.utils
 from bs4 import BeautifulSoup
 
 def get_links(bs, rule):

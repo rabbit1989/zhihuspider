@@ -1,6 +1,7 @@
 #coding=utf-8
 import sys
 import common.db as db
+import MySQLdb
 import logic.logic_base as logic_base
 import utils
 import logging
@@ -101,9 +102,8 @@ class topic_logic(logic_base.logic_base):
 			try:
 				sql_str = 'INSERT IGNORE INTO topic (link_id, name, focus, last_visit, add_time) VALUES (%s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE focus = %s, last_visit = %s'
 				self.db_conn.execute(sql_str, [(ele[0], ele[1]['name'], ele[1]['focus'], ele[1]['last_visit'], ele[1]['add_time'], ele[1]['focus'], ele[1]['last_visit'])])
-			except Exception, e:
-				traceback.print_exc()
-				logging.fatal(e)
+			except MySQLdb.Error, e:
+				self.db_conn.process_exception(e)
 
 		for ele in result['expend']:
 			if not self.unique_topics.has_key(ele[0]):

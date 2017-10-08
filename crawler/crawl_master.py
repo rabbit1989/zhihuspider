@@ -6,6 +6,7 @@ import ConfigParser
 import common.utils
 import os
 import sys
+import Queue
 from rpc.rpc_server import RPCServer
 from rpc.rpc_protocol import rpc_method
 
@@ -20,18 +21,19 @@ class CrawlMaster(RPCServer):
 		self.proxy_clients = []
 		self.last_proxy_serverd = 0
 		self.logic = logic
+		self.result_queue = Queue.Queue()
 
 	def update(self):
 		self.logic.prepare_work()
 		done = False
 		while done is False:
-			time.sleep(2)
+			time.sleep(1)
 			#找到空闲的slave
 			free_slaves = []
 			for slave_client, val in self.slave_clients.iteritems():
 				if val == True:
 					free_slaves.append(slave_client)		
-			logging.info('%d/%d of slaves are free', len(free_slaves), len(self.slave_clients))
+	#		logging.info('%d/%d of slaves are free', len(free_slaves), len(self.slave_clients))
 			
 			#将工作分配给空闲的slave
 			for free_slave in free_slaves:
@@ -40,7 +42,12 @@ class CrawlMaster(RPCServer):
 					continue
 				self.slave_clients[free_slave] = False
 				self.clients[free_slave].do_task(task)
-		
+
+			while self.result_queue.empty() == False:
+				res = self.result_queue.get(block = False)
+				self.logic.receive_work_result(res)
+
+
 		logging.info('all works has been assigned!!')
 
 	def run(self, cf):
@@ -93,7 +100,7 @@ class CrawlMaster(RPCServer):
 	@rpc_method
 	def on_do_task(self, res):
 		logging.info('master: on_do_task()')
-		self.logic.receive_work_result(res)
+		self.result_queue.put(res)
 
 	@rpc_method
 	def slave_is_available(self, val):
