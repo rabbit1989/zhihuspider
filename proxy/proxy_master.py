@@ -1,31 +1,18 @@
 #coding=utf-8
 import common.utils
-import cPickle
 import logging
 import ConfigParser
 import os
-import threading
-import sys
 import time
-from rpc.rpc_client import RPCClient
 from rpc.rpc_protocol import rpc_method
 import proxy_logic
-import crawler.crawl_master as crawl_master
+from crawler.crawl_master import CrawlMaster
 
-class ProxyProvider(RPCClient):
+class ProxyMaster(CrawlMaster):
 
 	def __init__(self, proxy_logic):
-		RPCClient.__init__(self)
+		CrawlMaster.__init__(self, proxy_logic)
 		self.proxy_logic = proxy_logic
-
-	'''
-		与crawler master相连，响应crawler master的代理请求
-	'''
-	def on_new_client_arrived(self, client_id):
-		'''
-			通知crawl master我是一个代理服务器
-		'''
-		self.clients[client_id].i_am_proxy()
 
 	@rpc_method
 	def notify_proxy_bad(self, proxy_url):
@@ -46,13 +33,6 @@ if __name__ == '__main__':
 	cf = ConfigParser.ConfigParser()
 	cf.read(config_path)
 
-	logic = proxy_logic.proxy_logic(cf)
-	
-	proxy_master = crawl_master.CrawlMaster(logic)
-	thread = threading.Thread(target = lambda : proxy_master.run({'listen_port':cf.get('proxy_master', 'listen_port')}))
-	thread.start()
-
-	proxy_provider = ProxyProvider(logic)
-	connect_ip = cf.get('proxy_master', 'connect_ip')
-	connect_port = cf.get('proxy_master', 'connect_port')
-	proxy_provider.start_rpc_client(connect_ip, connect_port)
+	logic = proxy_logic.proxy_logic(cf)	
+	proxy_master = ProxyMaster(logic)
+	proxy_master.run({'listen_port':cf.get('proxy_master', 'listen_port')})
